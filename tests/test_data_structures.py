@@ -1,4 +1,4 @@
-from random import shuffle
+from random import shuffle, randrange
 import unittest
 
 from algorithms.data_structures import (
@@ -11,7 +11,8 @@ from algorithms.data_structures import (
     union_find,
     union_find_by_rank,
     union_find_with_path_compression,
-    lcp_array
+    lcp_array,
+    heaps
 )
 
 
@@ -715,3 +716,125 @@ class TestLCPSuffixArrays(unittest.TestCase):
         s_array, rank = lcp_array.suffix_array(self.case_3)
         self.assertEqual(s_array, self.s_array_3)
         self.assertEqual(rank, self.rank_3)
+
+
+class TestHeaps(unittest.TestCase):
+    def test_heap_size(self):
+        src = [1, 2, 3]
+        heap = heaps.MinHeap(src)
+
+        self.assertEqual(heap.size(), len(src))
+
+    def test_heap_len(self):
+        src = [3, 4, 1, 2, 5]
+        heap = heaps.MinHeap(src)
+
+        self.assertEqual(len(heap), len(src))
+
+    def test_heap_iter(self):
+        src = [3, 4, 1, 2, 5]
+        heap = heaps.MinHeap(src)
+
+        i = 0
+        for x in heap:
+            self.assertEqual(sorted(src)[i], x)
+            i += 1
+
+    def test_heap_iter_with_comparison_key(self):
+        class Person:
+            def __init__(self, age, shoes=None):
+                self.age = age
+                self.shoes = shoes if shoes else randrange(4, 10)
+
+            def __repr__(self):
+                return 'age: {}, shoe size: {}'.format(self.age, self.shoes)
+
+        src = []
+        for x in [3, 4, 1, 2, 5]:
+            src.append(Person(x))
+
+        heap = heaps.MaxHeap(src, lambda k: k.age)
+
+        i = 0
+        for x in heap:
+            expected = sorted(src, key=lambda k: k.age, reverse=True)[i]
+            self.assertEqual(expected, x)
+            i += 1
+
+    def test_min_heap_push(self):
+        src = [2, 1, 3]
+        heap = heaps.MinHeap(src[:-1])
+
+        count = len(heap)
+        obj = src[-1]
+        heap.push(obj)
+
+        self.assertEqual(heap.size(), count + 1)
+        self.assertIn(obj, heap)
+        self.assertEqual(heap.peek(), sorted(src)[0])
+
+    def test_min_heap_pop(self):
+        src = [2, 1, 3]
+        heap = heaps.MinHeap(src)
+
+        i = 0
+        while heap.size():
+            self.assertEqual(heap.pop(), sorted(src)[i])
+            i += 1
+
+    def test_min_heap_push_pop(self):
+        src = [1, 3]
+        heap = heaps.MinHeap(src)
+
+        count = len(heap)
+        smallest = min(src)
+
+        self.assertEqual(heap.pushpop(smallest + 1), smallest)
+        self.assertEqual(len(heap), count)
+
+    def test_min_heap_peek(self):
+        src = [2, 1, 3]
+        heap = heaps.MinHeap()
+
+        for i in range(len(src)):
+            heap.push(src[i])
+            self.assertEqual(heap.peek(), sorted(src[:i + 1])[0])
+
+    def test_max_heap_push(self):
+        src = [2, 1, 3]
+        heap = heaps.MaxHeap(src[:-1])
+
+        count = len(heap)
+        obj = src[-1]
+        heap.push(obj)
+
+        self.assertEqual(heap.size(), count + 1)
+        self.assertIn(obj, heap)
+        self.assertEqual(heap.peek(), sorted(src, reverse=True)[0])
+
+    def test_max_heap_pop(self):
+        src = [2, 1, 3]
+        heap = heaps.MaxHeap(src)
+
+        i = 0
+        while heap.size():
+            self.assertEqual(heap.pop(), sorted(src, reverse=True)[i])
+            i += 1
+
+    def test_max_heap_push_pop(self):
+        src = [1, 3]
+        heap = heaps.MaxHeap(src)
+
+        count = len(heap)
+        biggest = max(src)
+
+        self.assertEqual(heap.pushpop(biggest - 1), biggest)
+        self.assertEqual(len(heap), count)
+
+    def test_max_heap_peek(self):
+        src = [2, 1, 3]
+        heap = heaps.MaxHeap()
+
+        for i in range(len(src)):
+            heap.push(src[i])
+            self.assertEqual(heap.peek(), sorted(src[:i + 1], reverse=True)[0])
